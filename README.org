@@ -1,0 +1,141 @@
+
+
+
+
+
+* Stupid ECL tricks
+
+  Mostly these are half baked hacks.  But hopefully they stimulate the
+  imagination of real programmers by providing a glims of what ELC is
+  cabable of.
+
+** Running ECL in gdb. 
+
+   I've always had a total mental block when it comes to C pointers.
+   It makes no sense to my brain that * indicates a variable is a
+   pointer when used in a declaration, but retrieves a value when used
+   as an operator.  And an array of pointers to a charactor string
+   makes total sense to me in words but char** str[] causes my mind to
+   go blank.  As a consequence any C code I write, or even look at to
+   intently immediately blows up when compiled and run.  A big
+   inconvenience embeding lisp. Replacing the usual,
+
+   #+BEGIN_SRC emacs-lisp :tangle no
+     (setq inferior-lisp-program "ecl")
+   #+END_SRC
+
+   with,
+
+   #+BEGIN_SRC emacs-lisp :tangle emacs-lisp.el
+     (setq inferior-lisp-program
+           "gdb --eval-command=run --eval-command=quit --args ecl")
+   #+END_SRC
+
+   Will run ~ecl~ under ~gdb~, which will provide you the normal ~gdb~
+   environment with c runtime errors, while throughing you into the
+   lisp debugger for lisp errors.  Note that ~gdb~ by default breaks
+   on ~SIGPWR~ and ~SIGXCPU~ which ecl uses for internal processing.
+   So, you'll also want to add the following to your .gdbinit file.
+
+   #+BEGIN_SRC  :tangle no
+     handle SIGPWR nostop noprint
+     handle SIGXCPU nostop noprint
+   #+END_SRC
+
+   
+** Embedding swank in a c application.
+ 
+   Swank is Lisp program that provides remote access to a Lisp
+   instance. It started as client/server application layer in CMUCL
+   and the Hemlock editor it ran.  It's since been ported to most
+   Lisps.  Slime is the Emacs front end client to Swank.  Together the
+   two tools provide a powerful Lisp development environment in Emacs.
+   The easiest way to install Swank and Slime is simply to get it from
+   quicklisp.  See:
+
+   https://www.quicklisp.org/beta/
+
+   Swank and slime work in following way:
+
+   #+BEGIN_SRC :tangle no
+     +----------+     launch ecl in                +--------------------+ 
+     | emacs    |---- process buffer, tell ------> | ecl process buffer |
+     +----------+     ecl to start swank           +-----+--------------+       		   
+        |      	    	       		                 |
+        |	    	                           start swank server:
+     create slime    			           (swank-loader:init)
+     buffer					   (swank:start-server)
+        |                                                |
+        |                                                |
+       \/  		                         	\/
+     +--------------+      integrated      +--------------------------------+
+     | repl:        +<---- lisp repl   --->| swank server listening         |
+     | slime buffer |      interaction     | on some arbitrary              |
+     +--------------+                      | TCP/IP port e.g.               |
+                                           | "Swank started at port: 46493" |
+                                           +--------------------------------+
+			                                   /\
+     +--------------+                                       |
+     | edit:        +<--------------------------------------+
+     | lisp buffer  |
+     +--------------+   
+   #+END_SRC
+
+
+   To embed swank in a c application we need the application to launch
+   swank and then establish the connection to the swank server using
+   ~slime-connect~.  Below is the c code that launches swank.  
+
+   Note, the following example is for Linux. ECL needs to explicitly
+   load the load a shared library in order to access binary symbols
+   such as C functions or C variables in process, this is a hackish
+   way of handling it and could cause problems on platforms that put
+   diffent constraints on loading shared libraries.
+	    	    
+   #+BEGIN_SRC c  :tangle main.c
+     /* -*- mode: c;  -*-
+        file: main.c
+     ,*/
+
+     #include "app_main.h"
+     /* a.out wrapper for call into a shared library. */
+     int main() {
+       return app_main();
+     }
+   #+END_SRC
+
+   #+BEGIN_SRC c  :tangle app_main.h
+     /* -*- mode: c;  -*-
+        file: app_main.h
+     ,*/
+
+     #ifndef __APP_MAIN_H__
+     #define __APP_MAIN_H__
+
+     int app_main();
+
+     #endif /* APP_MAIN_H */
+   #+END_SRC
+
+
+   #+BEGIN_SRC c  :tangle app_main.h
+     /* -*- mode: c;  -*-
+        file: app_main.h
+     ,*/
+
+     #ifndef __APP_MAIN_H__
+     #define __APP_MAIN_H__
+
+     int app_main();
+
+     #endif /* APP_MAIN_H */
+   #+END_SRC
+		
+
+   
+		    
+		    
+		    
+		    
+
+
