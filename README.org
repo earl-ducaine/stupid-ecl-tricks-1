@@ -205,7 +205,6 @@
      gcc $cflags -c app_main.c
      gcc -shared -Wl,-soname,libapp_main.so $ldflags -lecl -o libapp_main.so *o $libs
      gcc main.c $cflags $ldflags -lapp_main -lecl -o app
-
    #+END_SRC
 
    To build and run
@@ -273,7 +272,7 @@
    deleting intermediate files from the tmp directory when compiling
    ~ffi:c-inline and allow you to troubleshoot compilation errors.
 
-   #+BEGIN_SRC sh :tangle dont-delete-c.diff
+   #+BEGIN_SRC sh :tangle dont-delete-c.patch
      From d5f13ee1045c6395012bec06c101e10e98ba52b4 Mon Sep 17 00:00:00 2001
      From: Earl DuCaine <earl.ducaine-gmail-com>
      Date: Sat, 22 Aug 2015 07:44:57 -0700
@@ -314,7 +313,7 @@
    To apply the patch and build ECL
 
    #+BEGIN_SRC screen :tangle no
-     $ git apply --check dont-delete-c.patch
+     $ git apply --ignore-space-change --ignore-whitespace  dont-delete-c.diff 
      $ make
    #+END_SRC
 
