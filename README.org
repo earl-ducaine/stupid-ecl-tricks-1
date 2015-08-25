@@ -185,6 +185,7 @@
    A quick and dirty script file to build a shared library.  
 
    #+BEGIN_SRC sh :tangle build_app.sh
+
      # -*- mode: bash;  -*-
 
      function clean_build () {
@@ -195,7 +196,7 @@
 
      # Note, the -Wl,-R will make our shared library available to the
      # executable app from the location that it was compiled, rather than
-     # having to be installed globably adding the build path to
+     # having to be installed globably or adding the build path to
      # LD_LIBRARY_PATH.
 
      export ldflags="-L. -Wl,-R -Wl,."
@@ -203,7 +204,8 @@
 
      gcc $cflags -c app_main.c
      gcc -shared -Wl,-soname,libapp_main.so $ldflags -lecl -o libapp_main.so *o $libs
-     gcc main.c -o dynamically_linked $cflags $ldflags -lapp_main -lecl -o app
+     gcc main.c $cflags $ldflags -lapp_main -lecl -o app
+
    #+END_SRC
 
    To build and run
