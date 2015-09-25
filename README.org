@@ -43,7 +43,7 @@
    Swank is Lisp program that provides remote access to a Lisp
    instance. It started as client/server application layer in CMUCL
    and the Hemlock editor it ran.  It's since been ported to most
-   Lisps.  Slime is the Emacs front end client to Swank.  Together the
+   Lisps.  Slime is the Emacs front-end client to Swank.  Together the
    two tools provide a powerful Lisp development environment in Emacs.
    The easiest way to install Swank and Slime is simply to get it from
    quicklisp.  See:
@@ -70,24 +70,23 @@
                                            | "Swank started at port: 46493" |
                                            +--------------------------------+
 			                                   /\
-     +--------------+                                       |
-     | edit:        +<--------------------------------------+
-     | lisp buffer  |
-     +--------------+   
+     +--------------------------+                           |
+     | edit:                    +<--------------------------+
+     | buffer with Lisp source  |
+     +--------------------------+   
    #+END_SRC
 
-
-   To embed swank in a c application we need the application to launch
+   To embed swank in a C application we need the application to launch
    swank and then establish the connection to the swank server using
-   ~slime-connect~.  Below is the c code that launches swank.  
+   ~slime-connect~.  Below is the C code that launches swank.
 
    Note, the following example is for a GNU/Linux type system. ECL
-   needs to explicitly load the load a shared library in order to
-   access binary symbols such as C functions or C variables in
-   process, this is a hackish way of handling it, since the library
-   was already loaded when the applicaiton started, and could cause
-   problems on platforms that put different constraints on loading
-   shared libraries.
+   needs to explicitly load load a shared library in order to access
+   binary symbols such as C functions or C variables in process, this
+   is a hackish way of handling it, since the library was already
+   loaded when the applicaiton started, and could cause problems on
+   platforms that put different constraints on loading shared
+   libraries.
 	    	    
    #+BEGIN_SRC c  :tangle main.c
      /* -*- mode: c;  -*-
@@ -124,7 +123,7 @@
    #+BEGIN_SRC c  :tangle app_main.c
      /* -*- mode: c;  -*-
         file: app_main.c
-     ,*/
+     */
 
      #include "math.h"
      #include "app_main.h"
@@ -140,19 +139,24 @@
 
        cl_boot(1, pargv);
        atexit(cl_shutdown);
+       run_swank();
+       return 0;
 
+     }
+
+     void run_swank() {
        cl_object cl_start_swank_path = c_string_to_object(start_swank);
        cl_object cl_load =  ecl_make_symbol("LOAD","CL");
        cl_funcall(2, cl_load, cl_start_swank_path);
-       return 0;
+       return;
      }
    #+END_SRC
 
 
    This file, called by app_main, contains a couple of snippets of
-   code copied the Slime client that launches Swank server.  When
-   Swank launches it will print out the socket you can use to connect
-   to it, e.g.
+   code copied from the Emacs Slime client that launches Swank server.
+   When Swank launches it will print out the socket you can use to
+   connect to it, e.g.
 
    ~;; Swank started at port: 58252.~
 
@@ -194,7 +198,7 @@
 
      export libs="-lm"
 
-     # Note, the -Wl,-R will make our shared library available to the
+     # Note, the -Wl,-R flags will make our shared library available to the
      # executable app from the location that it was compiled, rather than
      # having to be installed globably or adding the build path to
      # LD_LIBRARY_PATH.
@@ -216,8 +220,8 @@
 
 ** Troubleshooting compilation problems with ffi:c-inline
    
-   ECL provide a facility for embedding C code directly in a Lisp
-   code, like the following:
+   ECL provide a facility for embedding C code directly in Lisp code,
+   like the following:
 
    #+BEGIN_SRC lisp :tangle no
      (defun c-sin (x)
@@ -249,7 +253,7 @@
      ;;; (RUN-PROGRAM "gcc" ("-I." "-I/usr/local/include/" "-D_GNU_SOURCE" "-D_FILE_OFFSET_BITS=64" "-g" "-O2" "-fPIC" "-D_THREAD_SAFE" "-Dlinux" "-O2" "-c" "/tmp/ecl001QoKf80.c" "-o" "/tmp/ecl001QoKf80.o"))
    #+END_SRC
 
-   if your try to recreate the error by invoking the implied shell
+   if you try to recreate the error by invoking the implied shell
    command:
 
    #+BEGIN_SRC sh :tangle no
@@ -266,7 +270,7 @@
    compilation terminated.
    #+END_SRC
 
-   Because ECL has already been cleaned.
+   Because ECL has already cleaned it from /tmp.
 
    Building ECL with the following patch file will prevent ECL from
    deleting intermediate files from the tmp directory when compiling
@@ -317,7 +321,7 @@
      $ make
    #+END_SRC
 
-   which provides us with the following compiler error if we re run
+   which provides us with the following compiler error if we re-run
    the above ~gcc~ command:
 
    #+BEGIN_SRC sh :tangle dont-delete-c.diff
@@ -331,14 +335,16 @@
 ** Cache Files
 
    Swank and ECL's embedded C in Lisp facility seem to have some
-   issues with caching, where compiled C snippets and a Swank image
-   don't get Refreshed when they should (at least on GNK/Linux).  If
+   issues with caching where compiled C snippets and a Swank images
+   don't get refreshed when they should (at least on GNU/Linux).  If
    you start noticing strange issues with changes to ffi:c-inline not
-   taking effect or Swank having the wrong image. Try deleting the
+   taking effect or Swank having the wrong image, try deleting the
    following cache files:
 
-   ~~/.cache/common-lisp/ecl-15.2.21-ee989b97-linux-x64~
-   ~/.slime~
+   #+BEGIN_SRC screen :tangle no
+     rm -rf ~/.cache/common-lisp/ecl-15.2.21-ee989b97-linux-x64
+     rm -rf ~/.slime
+   #+END_SRC
 
 
 
