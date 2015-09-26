@@ -123,15 +123,18 @@
    #+BEGIN_SRC c  :tangle app_main.c
      /* -*- mode: c;  -*-
         file: app_main.c
-     */
+     ,*/
 
-     #include "math.h"
+     #include <stdlib.h>
+     #include <math.h>
      #include "app_main.h"
 
+     void run_swank();
+
      /* embedded quotes really needed? */
-       char start_swank[] = "\"/mnt/pixel-512/dev/stupid-ecl-tricks-1/start-swank-server.lisp\"";
-       char* argv;
-       char** pargv;
+     char start_swank[] = "\"/mnt/pixel-512/dev/stupid-ecl-tricks-1/start-swank-server.lisp\"";
+     char* argv;
+     char** pargv;
 
      int app_main() {
        argv = "app";
@@ -139,7 +142,19 @@
 
        cl_boot(1, pargv);
        atexit(cl_shutdown);
-       run_swank();
+
+       /* Set up handler for Lisp errors to prevent buggy Lisp (an */
+       /* imposibility, I know!) from killing the app. */
+       const cl_env_ptr l_env = ecl_process_env();
+       CL_CATCH_ALL_BEGIN(l_env) {
+         CL_UNWIND_PROTECT_BEGIN(l_env) {
+           run_swank();
+         }
+         CL_UNWIND_PROTECT_EXIT {}
+         CL_UNWIND_PROTECT_END;
+       }
+       CL_CATCH_ALL_END;
+
        return 0;
 
      }
@@ -192,9 +207,8 @@
 
      # -*- mode: bash;  -*-
 
-     function clean_build () {
-         rm -f *.o *.so app
-     }
+
+     rm -f *.o *.so app
 
      export libs="-lm"
 
@@ -204,7 +218,7 @@
      # LD_LIBRARY_PATH.
 
      export ldflags="-L. -Wl,-R -Wl,."
-     export cflags="-DGC_LINUX_THREADS -D_REENTRANT -fPIC  -g -pipe -Wall -pedantic"
+     export cflags="-DGC_LINUX_THREADS -D_REENTRANT -fPIC  -g -pipe -Wall"
 
      gcc $cflags -c app_main.c
      gcc -shared -Wl,-soname,libapp_main.so $ldflags -lecl -o libapp_main.so *o $libs
