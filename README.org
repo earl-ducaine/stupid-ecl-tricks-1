@@ -253,10 +253,10 @@
 
    ~(compile 'c-sin)~
 
-   ECL will invoke your underlying C compiler.  If you have C errors,
-   it can cause compilation to fail but unfortunately ECL does not
-   pass along the compilers output. You'll get something like the
-   following:
+   ECL will invoke your underlying C compiler.  However, C syntax and
+   header include errors, like we includded in the above example, will
+   cause compilation to fail.  Unfortunately, ECL doesn't pass along
+   the compilers output. You'll get something like the following:
 
    #+BEGIN_SRC sh :tangle no
      ;;; OPTIMIZE levels: Safety=2, Space=0, Speed=3, Debug=3
@@ -286,57 +286,11 @@
 
    Because ECL has already cleaned it from /tmp.
 
-   Building ECL with the following patch file will prevent ECL from
-   deleting intermediate files from the tmp directory when compiling
-   ~ffi:c-inline and allow you to troubleshoot compilation errors.
-
-   #+BEGIN_SRC sh :tangle dont-delete-c.patch
-     From d5f13ee1045c6395012bec06c101e10e98ba52b4 Mon Sep 17 00:00:00 2001
-     From: Earl DuCaine <earl.ducaine-gmail-com>
-     Date: Sat, 22 Aug 2015 07:44:57 -0700
-     Subject: [PATCH] Add flag to inhibit deletion of C files associated with
-      ffi:c-inline.
-     
-     ---
-      src/cmp/cmpmain.lsp | 5 ++++-
-      1 file changed, 4 insertions(+), 1 deletion(-)
-     
-     diff --git a/src/cmp/cmpmain.lsp b/src/cmp/cmpmain.lsp
-     index e0b6b59..e8a1332 100755
-     --- a/src/cmp/cmpmain.lsp
-     +++ b/src/cmp/cmpmain.lsp
-     @@ -383,6 +383,8 @@ filesystem or in the database of ASDF modules."
-                  (find-archive system))
-             (fallback)))))
-      
-     +(defparameter no-cleanup t)
-     +
-      (defun builder (target output-name &key lisp-files ld-flags
-      		(init-name nil)
-                      (main-name nil)
-     @@ -663,7 +665,8 @@ compiled successfully, returns the pathname of the compiled file"
-                             (namestring input-pathname))
-                (cmperr "The C compiler failed to compile the intermediate file."))
-      
-     -      (mapc #'cmp-delete-file to-delete)
-     +      (unless no-cleanup
-     +	(mapc #'cmp-delete-file to-delete))
-      
-            (when (and load true-output-file (not system-p))
-      	(load true-output-file :verbose *compile-verbose*))
-     -- 
-     2.1.4
-   #+END_SRC
-
-   To apply the patch and build ECL
-
-   #+BEGIN_SRC screen :tangle no
-     $ git apply --ignore-space-change --ignore-whitespace  dont-delete-c.diff 
-     $ make
-   #+END_SRC
-
-   which provides us with the following compiler error if we re-run
-   the above ~gcc~ command:
+   But, ECL has a special variable, ~compiler::*delete-files*~ that
+   controls cleaning up c output files.  By setting it to ~nil~,
+   ~(setf compiler::*delete-files* nil)~ you can troubleshoot
+   compilation errors. Re-running above ~gcc~ command on from the Unix
+   shell gives us the following:
 
    #+BEGIN_SRC sh :tangle dont-delete-c.diff
    In file included from /tmp/ecl001QoKf80.c:6:0:
