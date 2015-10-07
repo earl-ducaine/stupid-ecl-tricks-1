@@ -9,7 +9,7 @@
    I've always had a total mental block when it comes to C pointers.
    It makes no sense to my brain that * indicates a variable is a
    pointer when used in a declaration, but retrieves a value when used
-   as an operator.  And an array of pointers to a charactor string
+   as an operator.  And an array of pointers to a character string
    makes total sense to me in words but char** str[] causes my mind to
    go blank.  As a consequence any C code I write, or even look at to
    intently immediately blows up when compiled and run.  A big
