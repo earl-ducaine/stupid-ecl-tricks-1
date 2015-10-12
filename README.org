@@ -11,9 +11,9 @@
    pointer when used in a declaration, but retrieves a value when used
    as an operator.  And an array of pointers to a character string
    makes total sense to me in words but char** str[] causes my mind to
-   go blank.  As a consequence any C code I write, or even look at to
+   go blank.  As a consequence any C code I write, or even look at too
    intently immediately blows up when compiled and run.  A big
-   inconvenience embeding lisp. Replacing the usual,
+   inconvenience when embedding Lisp. Replacing the usual,
 
    #+BEGIN_SRC emacs-lisp :tangle no
      (setq inferior-lisp-program "ecl")
@@ -27,10 +27,10 @@
    #+END_SRC
 
    Will run ~ecl~ under ~gdb~, which will provide you the normal ~gdb~
-   environment with c runtime errors, while throughing you into the
-   lisp debugger for lisp errors.  Note that ~gdb~ by default breaks
-   on ~SIGPWR~ and ~SIGXCPU~ which ecl uses for internal processing.
-   So, you'll also want to add the following to your .gdbinit file.
+   environment with c runtime errors, while throwing you into the lisp
+   debugger for Lisp errors.  Note that ~gdb~ by default breaks on
+   ~SIGPWR~ and ~SIGXCPU~ which ecl uses for internal processing.  So,
+   you'll also want to add the following to your .gdbinit file.
 
    #+BEGIN_SRC  :tangle no
      handle SIGPWR nostop noprint
@@ -40,7 +40,7 @@
    
 ** Embedding Swank in a c application.
  
-   Swank is Lisp program that provides remote access to a Lisp
+   Swank is a Lisp program that provides remote access to a Lisp
    instance. It started as client/server application layer in CMUCL
    and the Hemlock editor it ran.  It's since been ported to most
    Lisps.  Slime is the Emacs front-end client to Swank.  Together the
@@ -62,14 +62,14 @@
      buffer					   (swank:start-server)
         |                                                |
         |                                                |
-       \/  		                         	\/
+       \/  		                                \/
      +--------------+      integrated      +--------------------------------+
      | repl:        +<---- lisp repl   --->| swank server listening         |
      | slime buffer |      interaction     | on some arbitrary              |
      +--------------+                      | TCP/IP port e.g.               |
                                            | "Swank started at port: 46493" |
                                            +--------------------------------+
-			                                   /\
+                                                           /\
      +--------------------------+                           |
      | edit:                    +<--------------------------+
      | buffer with Lisp source  |
@@ -77,13 +77,14 @@
    #+END_SRC
 
    To embed swank in a C application we need the application to launch
-   swank and then establish the connection to the swank server using
-   ~slime-connect~.  Below is the C code that launches swank.
+   Swank and then for Emacs to establish the connection to the swank
+   server using ~slime-connect~.  Below is the C code that launches
+   Swank.
 
-   Note, the following example is for a GNU/Linux type system. ECL
+   Note, the following example is for a GNU/Linux type system. ecl
    needs to explicitly load load a shared library in order to access
-   binary symbols such as C functions or C variables in process, this
-   is a hackish way of handling it, since the library was already
+   binary symbols such as C functions or C variables in the process,
+   this is a hackish way of handling it since the library was already
    loaded when the applicaiton started, and could cause problems on
    platforms that put different constraints on loading shared
    libraries.
@@ -116,9 +117,9 @@
    #+END_SRC
 
    The following creates the shared library ~app_main~ used by both
-   the c program and ECL for symbols.  The embedded ECL code
-   initializes the ECL environment and call the Common Lisp ~load~
-   function to load a local lisp file with the code to run swank.  `
+   the C program and ECL for symbols.  The embedded ECL code
+   initializes the ECL environment and calls the Common Lisp ~load~
+   function to load a local Lisp file with the code to run swank.
 
    #+BEGIN_SRC c  :tangle app_main.c
      /* -*- mode: c;  -*-
@@ -131,8 +132,10 @@
 
      void run_swank();
 
-     /* embedded quotes really needed? */
-     char start_swank[] = "\"/mnt/pixel-512/dev/stupid-ecl-tricks-1/start-swank-server.lisp\"";
+     /* TODO: Are embedded quotes really needed? */
+     char start_swank[] =
+       "\"/mnt/pixel-512/dev/stupid-ecl-tricks-1/start-swank-server.lisp\"";
+
      char* argv;
      char** pargv;
 
@@ -168,10 +171,10 @@
    #+END_SRC
 
 
-   This file, called by app_main, contains a couple of snippets of
-   code copied from the Emacs Slime client that launches Swank server.
-   When Swank launches it will print out the socket you can use to
-   connect to it, e.g.
+   The following Lisp file, loaded by app_main, contains a couple of
+   snippets of code I copied from the Emacs Slime client that launches
+   the Swank server.  When Swank launches it will print out the socket
+   you can use to connect to it, e.g.
 
    ~;; Swank started at port: 58252.~
 
@@ -234,7 +237,7 @@
 
 ** Troubleshooting compilation problems with ffi:c-inline
    
-   ECL provide a facility for embedding C code directly in Lisp code,
+   ECL provide a facility for embedding C code directly in Lisp code
    like the following:
 
    #+BEGIN_SRC lisp :tangle no
@@ -248,13 +251,13 @@
      }" :one-liner nil))
    #+END_SRC
 
-   To use this function you need to compile the defun.  When you issue
+   To use this function you need to compile the ~defun~.  When you issue
    the explicit compile,
 
    ~(compile 'c-sin)~
 
    ECL will invoke your underlying C compiler.  However, C syntax and
-   header include errors, like we includded in the above example, will
+   header include errors, like we included in the above example, will
    cause compilation to fail.  Unfortunately, ECL doesn't pass along
    the compilers output. You'll get something like the following:
 
